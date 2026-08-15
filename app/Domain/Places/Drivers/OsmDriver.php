@@ -12,9 +12,11 @@ class OsmDriver implements FindsNearbyPlaces
     // amenity=* covers places you sit down and order (incl. workplace/school canteens).
     protected const AMENITIES = ['restaurant', 'cafe', 'fast_food', 'food_court', 'canteen'];
 
-    // Bakeries are a shop=* in OSM, not an amenity — amenity=bakery isn't a real tag,
-    // so it never matched anything before this was split out.
-    protected const SHOPS = ['bakery'];
+    // Bakeries/butchers/supermarkets are a shop=* in OSM, not an amenity —
+    // amenity=bakery isn't a real tag, so it never matched anything before this
+    // was split out. German butchers (Fleischerei) commonly sell hot snacks/lunch
+    // items too, same as bakeries, and supermarkets often have a deli/salad bar.
+    protected const SHOPS = ['bakery', 'butcher', 'supermarket'];
 
     public function __construct(
         protected string $overpassUrl = 'https://overpass-api.de/api/interpreter',

@@ -30,6 +30,8 @@ class RestaurantController extends Controller
         'cafe',
         'fast_food',
         'bakery',
+        'butcher',
+        'supermarket',
         'canteen',
         'food_court',
         'other'
