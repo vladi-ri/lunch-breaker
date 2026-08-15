@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);
+
+        // nginx/PHP-FPM are never reached directly from the internet - only via
+        // Cloudflare Tunnel (localhost) or the LAN - so the connecting "proxy"
+        // isn't a fixed, known IP to whitelist; trust the whole chain instead.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

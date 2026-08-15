@@ -7,6 +7,7 @@ use App\Domain\Geo\GeocodesAddresses;
 use App\Domain\Geo\GeoManager;
 use App\Domain\Places\FindsNearbyPlaces;
 use App\Domain\Places\PlacesManager;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -39,6 +40,12 @@ class AppServiceProvider extends ServiceProvider
      * @return void
      */
     public function boot() : void {
-        //
+        // Cloudflare Tunnel terminates TLS at the edge and forwards plain HTTP
+        // to nginx on the LAN, so the request Laravel actually sees looks
+        // unencrypted - without this, redirects/asset URLs would be generated
+        // as http:// even though the app is only ever reached over https://.
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
     }
 }
