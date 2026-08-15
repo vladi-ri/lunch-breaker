@@ -9,6 +9,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Controller for managing office settings.
+ * 
+ * @extends Controller
+ * @author  Vladislav Riemer <dev@vladislav-riemer.de>
+ */
 class OfficeSettingsController extends Controller
 {
     /**
@@ -18,9 +24,11 @@ class OfficeSettingsController extends Controller
      * @return View
      */
     public function show() : View {
-        return view('settings.office', [
-            'office' => Office::first()
-        ]);
+        return view(
+            'settings.office', [
+                'office' => Office::first()
+            ]
+        );
     }
 
     /**
@@ -38,13 +46,13 @@ class OfficeSettingsController extends Controller
             'address'             => ['required', 'string', 'max:255'],
             'max_distance_meters' => ['nullable', 'integer', 'min:1'],
             'max_walking_minutes' => ['nullable', 'integer', 'min:1'],
-            'distance_unit'        => ['required', 'in:meters,miles']
+            'distance_unit'       => ['required', 'in:meters,miles']
         ]);
 
-        $office   = Office::first() ?? new Office;
+        $office    = Office::first() ?? new Office;
         $office->fill($validated);
 
-        $geocoded = $geocoder->geocode($validated['address']);
+        $geocoded  = $geocoder->geocode($validated['address']);
 
         if ($geocoded === null) {
             return back()
@@ -70,6 +78,8 @@ class OfficeSettingsController extends Controller
             DiscoverRestaurantsJob::dispatch($office);
         }
 
-        return redirect()->route('office.edit')->with('status', 'office-updated');
+        return redirect()
+            ->route('office.edit')
+            ->with('status', 'office-updated');
     }
 }

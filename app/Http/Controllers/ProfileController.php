@@ -9,23 +9,36 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
+/**
+ * Controller for managing user profiles.
+ * 
+ * @extends Controller
+ * @author  Vladislav Riemer <dev@vladislav-riemer.de>
+ */
 class ProfileController extends Controller
 {
     /**
      * Display the user's profile form.
+     *
+     * @access public
+     * @return View
      */
-    public function edit(Request $request): View
-    {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+    public function edit(Request $request) : View {
+        return view(
+            'profile.edit', [
+                'user' => $request->user()
+            ]);
     }
 
     /**
      * Update the user's profile information.
+     *
+     * @param ProfileUpdateRequest $request The HTTP request object containing the form data.
+     * 
+     * @access public
+     * @return RedirectResponse
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
-    {
+    public function update(ProfileUpdateRequest $request) : RedirectResponse {
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {
@@ -34,16 +47,21 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('profile.edit')
+            ->with('status', 'profile-updated');
     }
 
     /**
      * Delete the user's account.
+     * 
+     * @param Request $request The HTTP request object containing the form data.
+     * 
+     * @access public
+     * @return RedirectResponse
      */
-    public function destroy(Request $request): RedirectResponse
-    {
+    public function destroy(Request $request) : RedirectResponse {
         $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+            'password' => ['required', 'current_password']
         ]);
 
         $user = $request->user();

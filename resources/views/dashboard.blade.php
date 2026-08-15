@@ -58,6 +58,14 @@
                                             </li>
                                         @endforeach
                                     </ul>
+                                @elseif ($menu && $menu->raw_text)
+                                    <div x-data="{ expanded: false }" class="text-sm text-gray-600">
+                                        <p class="text-xs text-gray-400 italic mb-1">Menu couldn't be split into items automatically &mdash; raw text below.</p>
+                                        <p :class="{ 'line-clamp-4': ! expanded }" class="whitespace-pre-line">{{ $menu->raw_text }}</p>
+                                        <button type="button" @click="expanded = ! expanded" class="text-indigo-600 text-xs font-semibold mt-1">
+                                            <span x-text="expanded ? 'Show less' : 'Show more'"></span>
+                                        </button>
+                                    </div>
                                 @else
                                     <p class="text-sm text-gray-400 italic">No menu for today yet.</p>
                                 @endif

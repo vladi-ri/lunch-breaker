@@ -7,17 +7,28 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
+/**
+ * Controller for managing restaurants.
+ * 
+ * @extends Controller
+ * @author  Vladislav Riemer <dev@vladislav-riemer.de>
+ */
 class RestaurantController extends Controller
 {
-    public function index(): View|RedirectResponse
-    {
-        $office = Office::first();
+    /**
+     * Display a listing of the restaurants.
+     * 
+     * @access public
+     * @return View|RedirectResponse
+     */
+    public function index() : View|RedirectResponse {
+        $office      = Office::first();
 
         if ($office === null || $office->latitude === null) {
             return redirect()->route('office.edit')->with('status', 'office-setup-required');
         }
 
-        $today = today()->toDateString();
+        $today       = today()->toDateString();
 
         $restaurants = $office->restaurants()
             ->where('is_active', true)
@@ -35,12 +46,14 @@ class RestaurantController extends Controller
             ->orderBy('walking_distance_meters')
             ->get();
 
-        $userId = Auth::id();
+        $userID      = Auth::id();
 
-        return view('dashboard', [
-            'office' => $office,
-            'restaurants' => $restaurants,
-            'userId' => $userId,
-        ]);
+        return view(
+            'dashboard', [
+                'office'      => $office,
+                'restaurants' => $restaurants,
+                'userId'      => $userID
+            ]
+        );
     }
 }

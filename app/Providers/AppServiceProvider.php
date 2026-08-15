@@ -9,13 +9,21 @@ use App\Domain\Places\FindsNearbyPlaces;
 use App\Domain\Places\PlacesManager;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * AppServiceProvider is responsible for registering and bootstrapping application services.
+ * 
+ * @extends ServiceProvider
+ * @author  Vladislav Riemer <dev@vladislav-riemer.de>
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
+     * 
+     * @access public
+     * @return void
      */
-    public function register(): void
-    {
+    public function register() : void {
         $this->app->singleton(GeoManager::class);
         $this->app->bind(GeocodesAddresses::class, fn ($app) => $app->make(GeoManager::class)->driver());
         $this->app->bind(CalculatesWalkingDistance::class, fn ($app) => $app->make(GeoManager::class)->driver());
@@ -26,9 +34,11 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap any application services.
+     * 
+     * @access public
+     * @return void
      */
-    public function boot(): void
-    {
+    public function boot() : void {
         //
     }
 }

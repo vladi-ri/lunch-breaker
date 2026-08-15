@@ -4,6 +4,7 @@ namespace App\Domain\Menus;
 
 use App\Domain\Menus\Sources\GenericHtmlScraperSource;
 use App\Domain\Menus\Sources\ManualMenuSource;
+use App\Domain\Menus\Sources\PdfWeeklyGridMenuSource;
 use App\Models\Restaurant;
 use Illuminate\Contracts\Container\Container;
 
@@ -29,6 +30,10 @@ class MenuSourceResolver
         // A custom per-restaurant scraper class can be set via menu_source_config['class'].
         if (! empty($config['class']) && is_a($config['class'], MenuSource::class, true)) {
             return $this->container->make($config['class']);
+        }
+
+        if (! empty($config['pdf_url'])) {
+            return $this->container->make(PdfWeeklyGridMenuSource::class);
         }
 
         return $this->container->make(GenericHtmlScraperSource::class);
