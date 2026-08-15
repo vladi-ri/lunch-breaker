@@ -11,6 +11,10 @@
                 <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-4">
                     Set your office address before the lunch board can show nearby restaurants.
                 </div>
+            @elseif (session('status') === 'office-rediscovering')
+                <div class="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg p-4">
+                    Rediscovering nearby restaurants &mdash; refresh the dashboard in a moment to see new results.
+                </div>
             @endif
 
             <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
@@ -70,6 +74,20 @@
                     </div>
                 </form>
             </div>
+
+            @if ($office?->latitude !== null)
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-700">Rediscover restaurants</h3>
+                    <p class="text-xs text-gray-500 mt-1 mb-4">
+                        Re-run restaurant discovery around your current office address without changing it &mdash;
+                        useful after widening your radius, or when new place types get added.
+                    </p>
+                    <form method="POST" action="{{ route('office.rediscover') }}">
+                        @csrf
+                        <x-secondary-button>{{ __('Rediscover now') }}</x-secondary-button>
+                    </form>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

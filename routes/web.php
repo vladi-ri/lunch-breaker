@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/settings/office', [OfficeSettingsController::class, 'show'])->name('office.edit');
     Route::put('/settings/office', [OfficeSettingsController::class, 'update'])->name('office.update');
+    Route::post('/settings/office/rediscover', [OfficeSettingsController::class, 'rediscover'])->name('office.rediscover');
 
     Route::post('/rsvps', [RsvpController::class, 'store'])->name('rsvps.store');
     Route::delete('/rsvps/{restaurant}', [RsvpController::class, 'destroy'])->name('rsvps.destroy');

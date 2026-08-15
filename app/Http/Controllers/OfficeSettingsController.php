@@ -82,4 +82,26 @@ class OfficeSettingsController extends Controller
             ->route('office.edit')
             ->with('status', 'office-updated');
     }
+
+    /**
+     * Re-run restaurant discovery for the current office without changing its
+     * address (e.g. after widening the radius, or picking up newly-added
+     * source categories like butchers/supermarkets).
+     * 
+     * @access public
+     * @return RedirectResponse
+     */
+    public function rediscover() : RedirectResponse {
+        $office = Office::first();
+
+        if ($office === null || $office->latitude === null) {
+            return redirect()->route('office.edit')->with('status', 'office-setup-required');
+        }
+
+        DiscoverRestaurantsJob::dispatch($office);
+
+        return redirect()
+            ->route('office.edit')
+            ->with('status', 'office-rediscovering');
+    }
 }
