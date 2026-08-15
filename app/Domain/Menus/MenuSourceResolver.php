@@ -4,7 +4,7 @@ namespace App\Domain\Menus;
 
 use App\Domain\Menus\Sources\GenericHtmlScraperSource;
 use App\Domain\Menus\Sources\ManualMenuSource;
-use App\Domain\Menus\Sources\PdfWeeklyGridMenuSource;
+use App\Domain\Menus\Sources\WeeklyGridMenuSource;
 use App\Models\Restaurant;
 use Illuminate\Contracts\Container\Container;
 
@@ -33,7 +33,7 @@ class MenuSourceResolver
         }
 
         if (! empty($config['pdf_url']) || ! empty($config['menu_page_url'])) {
-            return $this->container->make(PdfWeeklyGridMenuSource::class);
+            return $this->container->make(WeeklyGridMenuSource::class);
         }
 
         return $this->container->make(GenericHtmlScraperSource::class);

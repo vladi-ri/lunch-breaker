@@ -37,4 +37,23 @@ The OSM driver uses Nominatim (geocoding), Overpass API (place search), and OSRM
 
 ### Scheduled jobs
 
-For discovery and menu fetching to stay current, run the scheduler (e.g. via cron or Windows Task Scheduler calling `php artisan schedule:run` every minute) alongside a queue worker.
+For discovery and menu fetching to stay current, run the scheduler (e.g. via cron or Windows Task Scheduler calling `php artisan schedule:run` every minute) alongside a queue worker. On Windows, register both as repeating Scheduled Tasks (every 1 minute):
+
+```bash
+php artisan schedule:run
+php artisan queue:work --stop-when-empty --max-time=50
+```
+
+### Menu scrapers
+
+Restaurants with `menu_source_type = scraper` get their menu fetched automatically:
+
+- `menu_source_config = {"url": ..., "item_selector": ..., "name_selector": ..., "price_selector": ...}` — a plain HTML page, scraped via CSS selectors (`GenericHtmlScraperSource`).
+- `menu_source_config = {"menu_page_url": ...}` or `{"pdf_url": ...}` — a weekly day-of-week grid menu, published as either a PDF or an image (`WeeklyGridMenuSource`). With `menu_page_url`, the current week's file is looked up by ISO week number on every fetch (since providers like dish.co publish a new file at a new URL each week); `pdf_url` is for a single unchanging file.
+
+Image-based weekly menus need **Tesseract OCR** installed separately (not a Composer package):
+
+1. Install Tesseract (e.g. `winget install UB-Mannheim.TesseractOCR`) and set `TESSERACT_BINARY` in `.env` to its path if not the Windows default.
+2. Download a German language file (`deu.traineddata`, from [tesseract-ocr/tessdata_best](https://github.com/tesseract-ocr/tessdata_best)) into `storage/tessdata/` alongside a copy of `eng.traineddata` from the Tesseract install — the system install's own `tessdata` folder usually isn't writable without admin rights, so this app points `TESSERACT_TESSDATA_DIR` at a project-local copy instead.
+
+OCR accuracy on stylized/decorative menu images is meaningfully lower than text extracted from a real PDF — structured item+price splitting has a stricter internal safety check that only accepts the split when it's unambiguous, so noisy OCR results commonly fall back to showing the full extracted text rather than risking confidently-wrong structured data.

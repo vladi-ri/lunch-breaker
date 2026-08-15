@@ -51,4 +51,13 @@ return [
         'base_url' => env('OSRM_BASE_URL', 'https://router.project-osrm.org'),
     ],
 
+    'tesseract' => [
+        // Windows default install path for the UB-Mannheim Tesseract-OCR build.
+        'binary' => env('TESSERACT_BINARY', 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'),
+        // Directory containing *.traineddata files (needs at least deu.traineddata
+        // for German menus) - defaults to a project-local copy since the system
+        // install's own tessdata folder may not be writable without admin rights.
+        'tessdata_dir' => env('TESSERACT_TESSDATA_DIR', storage_path('tessdata')),
+    ],
+
 ];

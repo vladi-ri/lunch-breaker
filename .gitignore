@@ -5,6 +5,7 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/tessdata
 /vendor
 .env
 .env.backup
