@@ -7,6 +7,8 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <link rel="icon" type="image/png" href="/logo.png">
+
         <!-- PWA -->
         <link rel="manifest" href="/build/manifest.webmanifest">
         <meta name="theme-color" content="#2563eb">
