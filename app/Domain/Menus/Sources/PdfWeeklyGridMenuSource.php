@@ -9,6 +9,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Smalot\PdfParser\Parser as PdfParser;
+use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * Parses a weekly menu PDF laid out as a day-of-week grid (a common template
@@ -17,8 +18,13 @@ use Smalot\PdfParser\Parser as PdfParser;
  * cells (row-major: every day for row 1, then every day for row 2, ...), then
  * a block of dish descriptions in the same row-major order.
  *
- * Configured via `menu_source_config`:
- * ['pdf_url' => 'https://.../Speisekarte.pdf']
+ * Configured via `menu_source_config`, one of:
+ * ['menu_page_url' => 'https://.../'] - a stable page listing each week's menu
+ *   download (e.g. "Speisekarte KW33" -> some-file.pdf); the link matching the
+ *   requested date's ISO week number is resolved and fetched fresh each time,
+ *   since providers like dish.co publish a new PDF at a new URL every week.
+ * ['pdf_url' => 'https://.../Speisekarte.pdf'] - a single, unchanging PDF
+ *   (used only if menu_page_url isn't set).
  *
  * Structured per-item extraction only succeeds when the number of price cells
  * exactly matches the number of dish-text pieces split out (each dish is
@@ -35,13 +41,27 @@ class PdfWeeklyGridMenuSource implements MenuSource
     {
         $config = $restaurant->menu_source_config ?? [];
 
-        if (empty($config['pdf_url'])) {
+        $pdfUrl = ! empty($config['menu_page_url'])
+            ? $this->resolveCurrentWeekPdfUrl($config['menu_page_url'], $date)
+            : ($config['pdf_url'] ?? null);
+
+        if ($pdfUrl === null) {
             return null;
         }
 
-        $text = $this->extractText($config['pdf_url']);
+        $text = $this->extractText($pdfUrl);
 
         if ($text === null) {
+            return null;
+        }
+
+        // Sanity check against the document's own stated date range (e.g.
+        // "10.08.-14.08.2026"), so a stale or mismatched PDF - whether from a
+        // hardcoded pdf_url or a week-number match gone wrong - never gets
+        // silently presented as if it were this date's menu.
+        if (! $this->dateFallsWithinStatedRange($text, $date)) {
+            Log::warning('PDF menu date range does not include requested date', ['url' => $pdfUrl, 'date' => $date->toDateString()]);
+
             return null;
         }
 
@@ -56,6 +76,65 @@ class PdfWeeklyGridMenuSource implements MenuSource
         $items = $this->extractItemsForDay($text, $dayNames, $weekday);
 
         return new MenuResult(items: $items, rawText: $text);
+    }
+
+    /**
+     * Finds the PDF link on a landing page whose label names the requested
+     * date's ISO week (e.g. "Speisekarte KW33"). Returns null if no match is
+     * found, or if the matched link isn't a PDF (some weeks are published as
+     * an image instead, which this source can't read).
+     */
+    protected function resolveCurrentWeekPdfUrl(string $pageUrl, CarbonImmutable $date): ?string
+    {
+        $response = Http::get($pageUrl);
+
+        if (! $response->ok()) {
+            Log::warning('Menu page download failed', ['url' => $pageUrl, 'status' => $response->status()]);
+
+            return null;
+        }
+
+        $isoWeek = $date->isoWeek;
+        $crawler = new Crawler($response->body());
+        $matchedUrl = null;
+
+        $crawler->filter('.menu-downloads')->each(function (Crawler $node) use ($isoWeek, &$matchedUrl) {
+            if ($matchedUrl !== null) {
+                return;
+            }
+
+            $title = $node->filter('.menu-title')->count() > 0 ? $node->filter('.menu-title')->first()->text() : '';
+
+            if (! preg_match('/KW\s*0*'.$isoWeek.'\b/u', $title)) {
+                return;
+            }
+
+            $link = $node->filter('a[href]');
+
+            if ($link->count() > 0) {
+                $matchedUrl = $link->first()->attr('href');
+            }
+        });
+
+        if ($matchedUrl === null || ! str_ends_with(strtolower(parse_url($matchedUrl, PHP_URL_PATH) ?? ''), '.pdf')) {
+            return null;
+        }
+
+        return $matchedUrl;
+    }
+
+    protected function dateFallsWithinStatedRange(string $text, CarbonImmutable $date): bool
+    {
+        // e.g. "10.08.-14.08.2026" - a from/to day.month pair sharing one trailing year.
+        if (! preg_match('/(\d{1,2})\.(\d{1,2})\.-(\d{1,2})\.(\d{1,2})\.(\d{4})/u', $text, $m)) {
+            // No recognizable range in the document - don't block on something we can't verify.
+            return true;
+        }
+
+        $from = CarbonImmutable::create((int) $m[5], (int) $m[2], (int) $m[1]);
+        $to = CarbonImmutable::create((int) $m[5], (int) $m[4], (int) $m[3]);
+
+        return $date->betweenIncluded($from, $to);
     }
 
     protected function extractText(string $url): ?string

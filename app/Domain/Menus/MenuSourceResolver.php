@@ -32,7 +32,7 @@ class MenuSourceResolver
             return $this->container->make($config['class']);
         }
 
-        if (! empty($config['pdf_url'])) {
+        if (! empty($config['pdf_url']) || ! empty($config['menu_page_url'])) {
             return $this->container->make(PdfWeeklyGridMenuSource::class);
         }
 
