@@ -38,15 +38,35 @@ export default defineConfig({
                 additionalManifestEntries: [
                     { url: '/offline.html', revision: '1' },
                 ],
-                navigateFallback: '/offline.html',
-                navigateFallbackDenylist: [/^\/admin/, /^\/settings/],
+                // Without this, workbox-build's generateSW defaults to injecting its
+                // own NavigationRoute for a nonexistent "index.html" (an SPA-style
+                // default) - registered before our own rule below, so it would win
+                // for every navigation (including POSTs, since it has no method
+                // restriction) despite offline.html being what we actually want.
+                navigateFallback: null,
+                // `navigateFallback` (the simpler built-in option) doesn't
+                // distinguish HTTP methods, so it was serving offline.html for
+                // POST form submissions (register, login, RSVP, ...) even when
+                // the network request actually succeeded - the Cache API can't
+                // store a non-GET request, so trying to do so throws and gets
+                // treated as a failure. This rule is scoped to GET explicitly,
+                // so POST/PUT/DELETE navigations bypass the service worker
+                // entirely and hit the network normally.
                 runtimeCaching: [
                     {
-                        urlPattern: ({ request }) => request.mode === 'navigate',
+                        urlPattern: ({ request, url }) =>
+                            request.mode === 'navigate'
+                            && !/^\/(admin|settings)/.test(url.pathname),
+                        method: 'GET',
                         handler: 'NetworkFirst',
                         options: {
                             cacheName: 'pages',
                             networkTimeoutSeconds: 3,
+                            plugins: [
+                                {
+                                    handlerDidError: async () => caches.match('/offline.html'),
+                                },
+                            ],
                         },
                     },
                 ],
