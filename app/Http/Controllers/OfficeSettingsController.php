@@ -11,24 +11,37 @@ use Illuminate\View\View;
 
 class OfficeSettingsController extends Controller
 {
-    public function show(): View
-    {
+    /**
+     * Show the office settings form.
+     * 
+     * @access public
+     * @return View
+     */
+    public function show() : View {
         return view('settings.office', [
-            'office' => Office::first(),
+            'office' => Office::first()
         ]);
     }
 
-    public function update(Request $request, GeocodesAddresses $geocoder): RedirectResponse
-    {
+    /**
+     * Update the office settings.
+     * 
+     * @param Request           $request  The HTTP request object containing the form data.
+     * @param GeocodesAddresses $geocoder Object that can geocode addresses into lat/lng coordinates.
+     * 
+     * @access public
+     * @return RedirectResponse
+     */
+    public function update(Request $request, GeocodesAddresses $geocoder) : RedirectResponse {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'address' => ['required', 'string', 'max:255'],
+            'name'                => ['required', 'string', 'max:255'],
+            'address'             => ['required', 'string', 'max:255'],
             'max_distance_meters' => ['nullable', 'integer', 'min:1'],
             'max_walking_minutes' => ['nullable', 'integer', 'min:1'],
-            'distance_unit' => ['required', 'in:meters,miles'],
+            'distance_unit'        => ['required', 'in:meters,miles']
         ]);
 
-        $office = Office::first() ?? new Office;
+        $office   = Office::first() ?? new Office;
         $office->fill($validated);
 
         $geocoded = $geocoder->geocode($validated['address']);
@@ -39,12 +52,12 @@ class OfficeSettingsController extends Controller
                 ->withErrors(['address' => 'Could not find that address. Please check it and try again.']);
         }
 
-        $moved = $office->latitude === null
+        $moved               = $office->latitude === null
             || round((float) $office->latitude, 4) !== round($geocoded->latitude, 4)
             || round((float) $office->longitude, 4) !== round($geocoded->longitude, 4);
 
-        $office->latitude = $geocoded->latitude;
-        $office->longitude = $geocoded->longitude;
+        $office->latitude    = $geocoded->latitude;
+        $office->longitude   = $geocoded->longitude;
         $office->geocoded_at = now();
         $office->save();
 
