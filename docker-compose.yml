@@ -1,0 +1,65 @@
+services:
+  app:
+    build: .
+    container_name: lunch-breaker-app
+    working_dir: /var/www/html
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+
+  web:
+    image: nginx:alpine
+    container_name: lunch-breaker-web
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  scheduler:
+    build: .
+    container_name: lunch-breaker-scheduler
+    working_dir: /var/www/html
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - app
+      - db
+    command: php artisan schedule:work
+
+  queue:
+    build: .
+    container_name: lunch-breaker-queue
+    working_dir: /var/www/html
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - app
+      - db
+    command: php artisan queue:work --tries=3
+
+  db:
+    image: mariadb:11
+    container_name: lunch-breaker-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lunch_breaker
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app
+    # Not published to the host - only the app/scheduler/queue containers need
+    # it, reachable internally as `db:3306`. Keeps the database off the Pi's
+    # network entirely and avoids colliding with other apps' db containers
+    # that may already be bound to host port 3306.
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

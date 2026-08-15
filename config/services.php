@@ -52,12 +52,16 @@ return [
     ],
 
     'tesseract' => [
-        // Windows default install path for the UB-Mannheim Tesseract-OCR build.
-        'binary' => env('TESSERACT_BINARY', 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'),
-        // Directory containing *.traineddata files (needs at least deu.traineddata
-        // for German menus) - defaults to a project-local copy since the system
-        // install's own tessdata folder may not be writable without admin rights.
-        'tessdata_dir' => env('TESSERACT_TESSDATA_DIR', storage_path('tessdata')),
+        // No portable default across Windows/Linux - set explicitly per environment.
+        // Windows (winget UB-Mannheim build): C:\Program Files\Tesseract-OCR\tesseract.exe
+        // Debian/Docker (apt tesseract-ocr package): /usr/bin/tesseract
+        'binary' => env('TESSERACT_BINARY'),
+        // Directory containing *.traineddata files (needs at least deu.traineddata for
+        // German menus). Leave unset on Linux where `apt install tesseract-ocr-deu`
+        // already places it on Tesseract's own default search path; on Windows this
+        // needs to point at a writable project-local copy (see README), since the
+        // system install's own tessdata folder isn't writable without admin rights.
+        'tessdata_dir' => env('TESSERACT_TESSDATA_DIR'),
     ],
 
 ];
