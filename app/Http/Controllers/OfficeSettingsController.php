@@ -41,7 +41,7 @@ class OfficeSettingsController extends Controller
      * @return RedirectResponse
      */
     public function update(Request $request, GeocodesAddresses $geocoder) : RedirectResponse {
-        $validated      = $request->validate([
+        $validated           = $request->validate([
             'name'                => ['required', 'string', 'max:255'],
             'address'             => ['required', 'string', 'max:255'],
             'max_distance_meters' => ['nullable', 'integer', 'min:1'],
@@ -49,15 +49,15 @@ class OfficeSettingsController extends Controller
             'distance_unit'       => ['required', 'in:meters,miles']
         ]);
 
-        $office         = Office::first() ?? new Office;
+        $office              = Office::first() ?? new Office;
         $office->fill($validated);
 
         // Must be read before save() clears the dirty state, and reflects the
         // submitted address text rather than geocoded coordinates so that
         // reverting to a previous address is detected too (see below).
-        $addressChanged = $office->latitude === null || $office->isDirty('address');
+        $addressChanged      = $office->latitude === null || $office->isDirty('address');
 
-        $geocoded       = $geocoder->geocode($validated['address']);
+        $geocoded            = $geocoder->geocode($validated['address']);
 
         if ($geocoded === null) {
             return back()

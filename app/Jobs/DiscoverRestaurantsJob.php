@@ -34,16 +34,31 @@ class DiscoverRestaurantsJob implements ShouldQueue
     protected const DEFAULT_SEARCH_RADIUS_METERS = 1500;
 
     /**
+     * The office's geocoded_at value at dispatch time, captured as a plain
+     * string (not an Eloquent attribute) so SerializesModels doesn't
+     * silently refresh it to the office's *current* value when the job is
+     * unserialized off the queue — it needs to stay frozen at what it was
+     * when this run was kicked off, so a stale run can detect that it was
+     * superseded by a later address change.
+     * 
+     * @var    string|null
+     * @access protected
+     */
+    protected ?string $expectedGeocodedAt;
+
+    /**
      * Create a new job instance.
-     * 
+     *
      * @param Office $office The office for which to discover nearby restaurants.
-     * 
+     *
      * @access public
      * @return void
      */
     public function __construct(
-        protected Office $office,
-    ) {}
+        protected Office $office
+    ) {
+        $this->expectedGeocodedAt = $office->geocoded_at?->toJSON();
+    }
 
     /**
      * Execute the job.
@@ -69,9 +84,29 @@ class DiscoverRestaurantsJob implements ShouldQueue
             radiusMeters: $radius
         );
 
-        $driverName = config('services.places.driver', 'osm') === 'google' ? 'google_places' : 'osm';
+        // The Overpass/Google lookup above can take several seconds. If the
+        // office's address changed again while it was in flight, this run
+        // is for a superseded location — writing its results now would
+        // resurrect restaurants that the newer address change already
+        // deactivated, leaving both address's restaurants active at once.
+        $current    = Office::find($this->office->id);
+
+        if ($current === null || $current->geocoded_at?->toJSON() !== $this->expectedGeocodedAt) {
+            Log::info(
+                'Discarding stale restaurant discovery run: office address changed again mid-flight', [
+                    'office_id' => $this->office->id
+                ]
+            );
+
+            return;
+        }
+
+        $driverName   = config('services.places.driver', 'osm') === 'google' ? 'google_places' : 'osm';
+        $foundIDs     = [];
 
         foreach ($results as $place) {
+            $foundIDs[] = $place->externalId;
+
             $restaurant = Restaurant::updateOrCreate(
                 [
                     'office_id'   => $this->office->id,
@@ -90,5 +125,16 @@ class DiscoverRestaurantsJob implements ShouldQueue
 
             RefreshWalkingDistanceJob::dispatch($restaurant);
         }
+
+        // Reconcile rather than only add: anything previously active for this
+        // office+source that this run didn't find (e.g. it belonged to a
+        // since-superseded address) gets deactivated here, so a run is
+        // always self-contained and doesn't depend on a caller having
+        // pre-cleared the old set.
+        Restaurant::where('office_id', $this->office->id)
+            ->where('source', $driverName)
+            ->where('is_active', true)
+            ->whereNotIn('external_id', $foundIDs)
+            ->update(['is_active' => false]);
     }
 }
