@@ -84,7 +84,7 @@
                     </p>
                     <form method="POST" action="{{ route('office.rediscover') }}">
                         @csrf
-                        <x-secondary-button>{{ __('Rediscover now') }}</x-secondary-button>
+                        <x-secondary-button type="submit">{{ __('Rediscover now') }}</x-secondary-button>
                     </form>
                 </div>
             @endif
