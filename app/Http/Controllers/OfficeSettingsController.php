@@ -41,7 +41,7 @@ class OfficeSettingsController extends Controller
      * @return RedirectResponse
      */
     public function update(Request $request, GeocodesAddresses $geocoder) : RedirectResponse {
-        $validated = $request->validate([
+        $validated      = $request->validate([
             'name'                => ['required', 'string', 'max:255'],
             'address'             => ['required', 'string', 'max:255'],
             'max_distance_meters' => ['nullable', 'integer', 'min:1'],
@@ -49,10 +49,15 @@ class OfficeSettingsController extends Controller
             'distance_unit'       => ['required', 'in:meters,miles']
         ]);
 
-        $office    = Office::first() ?? new Office;
+        $office         = Office::first() ?? new Office;
         $office->fill($validated);
 
-        $geocoded  = $geocoder->geocode($validated['address']);
+        // Must be read before save() clears the dirty state, and reflects the
+        // submitted address text rather than geocoded coordinates so that
+        // reverting to a previous address is detected too (see below).
+        $addressChanged = $office->latitude === null || $office->isDirty('address');
+
+        $geocoded       = $geocoder->geocode($validated['address']);
 
         if ($geocoded === null) {
             return back()
@@ -60,16 +65,12 @@ class OfficeSettingsController extends Controller
                 ->withErrors(['address' => 'Could not find that address. Please check it and try again.']);
         }
 
-        $moved               = $office->latitude === null
-            || round((float) $office->latitude, 4) !== round($geocoded->latitude, 4)
-            || round((float) $office->longitude, 4) !== round($geocoded->longitude, 4);
-
         $office->latitude    = $geocoded->latitude;
         $office->longitude   = $geocoded->longitude;
         $office->geocoded_at = now();
         $office->save();
 
-        if ($moved) {
+        if ($addressChanged) {
             // The old restaurant set was discovered around the previous location and its
             // cached walking distances no longer mean anything here. Hide it (rather than
             // delete, to keep any manually entered menus/RSVPs) and discover fresh.
