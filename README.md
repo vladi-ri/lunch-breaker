@@ -13,6 +13,7 @@ A Laravel PWA that finds lunch spots near your office and helps colleagues coord
 ## Roadmap
 
 - **Cluster restaurants by location.** Discovery now matches OSM `way`/`relation` elements as well as nodes (needed to catch shops mapped as building/unit outlines, e.g. inside train stations), which means places that share one building or complex — a station food court, a shopping mall — show up as several separate board entries right next to each other. Group results that sit within a few meters of each other into a single clustered card instead of listing each one individually.
+- **Persistently show today's chosen spot.** Once a restaurant/occasion for the day is settled, surface it permanently somewhere always visible — e.g. next to the dashboard header, or a footnote — instead of it only being visible by scanning RSVPs on the board.
 
 ## Stack
 
