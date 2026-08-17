@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Office;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -18,9 +17,11 @@ class RegisteredUserController extends Controller
 {
     /**
      * Display the registration view.
+     * 
+     * @access public
+     * @return View
      */
-    public function create(): View
-    {
+    public function create() : View {
         return view('auth.register');
     }
 
@@ -28,20 +29,21 @@ class RegisteredUserController extends Controller
      * Handle an incoming registration request.
      *
      * @throws ValidationException
+     * 
+     * @access public
+     * @return RedirectResponse
      */
-    public function store(Request $request): RedirectResponse
-    {
+    public function store(Request $request) : RedirectResponse {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()]
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name'     => $request->name,
+            'email'    => $request->email,
             'password' => Hash::make($request->password),
-            'office_id' => Office::first()?->id,
             'is_admin' => User::count() === 0,
         ]);
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Office;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -22,10 +21,17 @@ class RestaurantController extends Controller
      * @return View|RedirectResponse
      */
     public function index() : View|RedirectResponse {
-        $office      = Office::first();
+        $user        = Auth::user();
+        $office      = $user->office;
 
-        if ($office === null || $office->latitude === null) {
-            return redirect()->route('office.edit')->with('status', 'office-setup-required');
+        if ($office === null) {
+            return $user->offices()->exists()
+                ? redirect()->route('offices.index')->with('status', 'office-inactive')
+                : redirect()->route('offices.create')->with('status', 'office-setup-required');
+        }
+
+        if ($office->latitude === null) {
+            return redirect()->route('offices.edit', $office)->with('status', 'office-setup-required');
         }
 
         $today       = today()->toDateString();

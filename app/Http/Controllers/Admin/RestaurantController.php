@@ -46,21 +46,22 @@ class RestaurantController extends Controller
     public function index() : View {
         return view(
             'admin.restaurants.index', [
-                'restaurants' => Restaurant::orderBy('name')->get()
+                'restaurants' => Restaurant::with('office.user')->orderBy('name')->get()
             ]
         );
     }
 
     /**
      * Show the form for creating a new restaurant.
-     * 
+     *
      * @access public
      * @return View
      */
     public function create() : View {
         return view(
             'admin.restaurants.create', [
-                'categories' => self::CATEGORIES
+                'categories' => self::CATEGORIES,
+                'offices'    => Office::with('user')->orderBy('name')->get()
             ]
         );
     }
@@ -76,7 +77,6 @@ class RestaurantController extends Controller
      */
     public function store(Request $request, GeocodesAddresses $geocoder) : RedirectResponse {
         $validated  = $this->validateRestaurant($request);
-        $office     = Office::first();
         $geocoded   = $geocoder->geocode($validated['address']);
 
         if ($geocoded === null) {
@@ -86,7 +86,7 @@ class RestaurantController extends Controller
         }
 
         $restaurant = Restaurant::create([
-            'office_id'        => $office->id,
+            'office_id'        => $validated['office_id'],
             'name'             => $validated['name'],
             'source'           => 'manual',
             'external_id'      => null,
@@ -116,7 +116,8 @@ class RestaurantController extends Controller
     public function edit(Restaurant $restaurant) : View {
         return view('admin.restaurants.edit', [
             'restaurant' => $restaurant,
-            'categories' => self::CATEGORIES
+            'categories' => self::CATEGORIES,
+            'offices'    => Office::with('user')->orderBy('name')->get()
         ]);
     }
 
@@ -133,11 +134,13 @@ class RestaurantController extends Controller
     public function update(Request $request, Restaurant $restaurant, GeocodesAddresses $geocoder) : RedirectResponse {
         $validated      = $this->validateRestaurant($request);
         $addressChanged = $restaurant->address !== $validated['address'];
+        $officeChanged  = (int) $restaurant->office_id !== (int) $validated['office_id'];
 
         $restaurant->fill([
             'name'      => $validated['name'],
             'address'   => $validated['address'],
-            'category'  => $validated['category']
+            'category'  => $validated['category'],
+            'office_id' => $validated['office_id']
         ]);
 
         // If the address has changed, we need to geocode the new address to get the updated latitude and longitude.
@@ -156,8 +159,9 @@ class RestaurantController extends Controller
 
         $restaurant->save();
 
-        // If the address has changed, we need to refresh the walking distance for this restaurant.
-        if ($addressChanged) {
+        // Walking distance is calculated from the restaurant's office, so either the
+        // address or the office changing means the previously cached distance is stale.
+        if ($addressChanged || $officeChanged) {
             RefreshWalkingDistanceJob::dispatch($restaurant);
         }
 
@@ -192,9 +196,10 @@ class RestaurantController extends Controller
      */
     protected function validateRestaurant(Request $request) : array {
         return $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'address'  => ['required', 'string', 'max:255'],
-            'category' => ['required', 'in:'.implode(',', self::CATEGORIES)]
+            'name'      => ['required', 'string', 'max:255'],
+            'address'   => ['required', 'string', 'max:255'],
+            'category'  => ['required', 'in:'.implode(',', self::CATEGORIES)],
+            'office_id' => ['required', 'exists:offices,id']
         ]);
     }
 }

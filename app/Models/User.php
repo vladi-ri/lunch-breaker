@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -60,12 +61,34 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the office that the user belongs to.
+     * Get the user's currently active office.
      * 
      * @access public
      * @return BelongsTo
      */
     public function office() : BelongsTo {
         return $this->belongsTo(Office::class);
+    }
+
+    /**
+     * Get the offices this user owns.
+     * 
+     * @access public
+     * @return HasMany
+     */
+    public function offices() : HasMany {
+        return $this->hasMany(Office::class);
+    }
+
+    /**
+     * Determine whether this user owns the given office.
+     * 
+     * @param Office $office The office to check ownership of.
+     * 
+     * @access public
+     * @return bool
+     */
+    public function ownsOffice(Office $office) : bool {
+        return $office->user_id === $this->id;
     }
 }

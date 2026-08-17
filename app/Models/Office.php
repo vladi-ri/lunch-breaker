@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -23,6 +24,7 @@ class Office extends Model
      * @access protected
      */
     protected $fillable = [
+        'user_id',
         'name',
         'address',
         'latitude',
@@ -48,7 +50,19 @@ class Office extends Model
     }
 
     /**
-     * Get the users associated with the office.
+     * Get the user who owns this office.
+     * 
+     * @access public
+     * @return BelongsTo
+     */
+    public function user() : BelongsTo {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the user(s) who currently have this office set as active.
+     * Normally zero or one - offices are personal, so this is not a
+     * membership list.
      * 
      * @access public
      * @return HasMany

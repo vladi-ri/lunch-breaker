@@ -24,6 +24,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left font-medium text-gray-500">Name</th>
+                            <th class="px-6 py-3 text-left font-medium text-gray-500">Office</th>
                             <th class="px-6 py-3 text-left font-medium text-gray-500">Category</th>
                             <th class="px-6 py-3 text-left font-medium text-gray-500">Source</th>
                             <th class="px-6 py-3 text-left font-medium text-gray-500">Distance</th>
@@ -35,6 +36,7 @@
                         @forelse ($restaurants as $restaurant)
                             <tr>
                                 <td class="px-6 py-3">{{ $restaurant->name }}</td>
+                                <td class="px-6 py-3 text-gray-500">{{ $restaurant->office->name }} ({{ $restaurant->office->user->name }})</td>
                                 <td class="px-6 py-3 text-gray-500">{{ $restaurant->category }}</td>
                                 <td class="px-6 py-3 text-gray-500">{{ $restaurant->source }}</td>
                                 <td class="px-6 py-3 text-gray-500">
@@ -59,7 +61,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-6 text-center text-gray-400">No restaurants yet.</td>
+                                <td colspan="7" class="px-6 py-6 text-center text-gray-400">No restaurants yet.</td>
                             </tr>
                         @endforelse
                     </tbody>

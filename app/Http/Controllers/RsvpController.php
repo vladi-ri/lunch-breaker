@@ -24,10 +24,14 @@ class RsvpController extends Controller
      * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse {
-        $validated = $request->validate([
+        $validated  = $request->validate([
             'restaurant_id' => ['required', 'exists:restaurants,id'],
             'date'          => ['required', 'date']
         ]);
+
+        $restaurant = Restaurant::findOrFail($validated['restaurant_id']);
+
+        abort_unless($restaurant->office_id === $request->user()->office_id, 403);
 
         Rsvp::updateOrCreate(
             [
@@ -52,6 +56,8 @@ class RsvpController extends Controller
      */
     public function destroy(Request $request, Restaurant $restaurant) : RedirectResponse {
         $date = $request->validate(['date' => ['required', 'date']])['date'];
+
+        abort_unless($restaurant->office_id === $request->user()->office_id, 403);
 
         Rsvp::where('user_id', $request->user()->id)
             ->where('restaurant_id', $restaurant->id)

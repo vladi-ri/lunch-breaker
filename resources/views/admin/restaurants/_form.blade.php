@@ -1,4 +1,16 @@
 <div>
+    <x-input-label for="office_id" value="Office" />
+    <select id="office_id" name="office_id" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+        @foreach ($offices as $office)
+            <option value="{{ $office->id }}" @selected((int) old('office_id', $restaurant->office_id ?? null) === $office->id)>
+                {{ $office->name }} ({{ $office->user->name }})
+            </option>
+        @endforeach
+    </select>
+    <x-input-error :messages="$errors->get('office_id')" class="mt-2" />
+</div>
+
+<div class="mt-4">
     <x-input-label for="name" value="Name" />
     <x-text-input id="name" name="name" type="text" class="mt-1 block w-full"
         value="{{ old('name', $restaurant->name ?? '') }}" required />

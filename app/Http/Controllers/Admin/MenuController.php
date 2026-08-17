@@ -26,8 +26,8 @@ class MenuController extends Controller
     public function index() : View {
         return view(
             'admin.menus.index', [
-                'restaurants' => Restaurant::orderBy('name')->get(),
-                'menus'       => Menu::with('restaurant')->orderByDesc('date')->limit(50)->get()
+                'restaurants' => Restaurant::with('office.user')->orderBy('name')->get(),
+                'menus'       => Menu::with('restaurant.office')->orderByDesc('date')->limit(50)->get()
             ]
         );
     }
@@ -40,7 +40,7 @@ class MenuController extends Controller
      */
     public function create() : View {
         return view('admin.menus.create', [
-            'restaurants' => Restaurant::orderBy('name')->get()
+            'restaurants' => Restaurant::with('office.user')->orderBy('name')->get()
         ]);
     }
 
@@ -79,7 +79,7 @@ class MenuController extends Controller
         return view(
             'admin.menus.edit', [
                 'menu'        => $menu,
-                'restaurants' => Restaurant::orderBy('name')->get()
+                'restaurants' => Restaurant::with('office.user')->orderBy('name')->get()
             ]);
     }
 

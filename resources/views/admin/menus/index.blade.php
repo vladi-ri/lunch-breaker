@@ -24,6 +24,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left font-medium text-gray-500">Restaurant</th>
+                            <th class="px-6 py-3 text-left font-medium text-gray-500">Office</th>
                             <th class="px-6 py-3 text-left font-medium text-gray-500">Date</th>
                             <th class="px-6 py-3 text-left font-medium text-gray-500">Source</th>
                             <th class="px-6 py-3"></th>
@@ -33,6 +34,7 @@
                         @forelse ($menus as $menu)
                             <tr>
                                 <td class="px-6 py-3">{{ $menu->restaurant->name }}</td>
+                                <td class="px-6 py-3 text-gray-500">{{ $menu->restaurant->office->name }}</td>
                                 <td class="px-6 py-3">{{ $menu->date->toFormattedDateString() }}</td>
                                 <td class="px-6 py-3 text-gray-500">{{ $menu->source_type }}</td>
                                 <td class="px-6 py-3 text-right space-x-3">
@@ -47,7 +49,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-6 text-center text-gray-400">No menus yet.</td>
+                                <td colspan="5" class="px-6 py-6 text-center text-gray-400">No menus yet.</td>
                             </tr>
                         @endforelse
                     </tbody>

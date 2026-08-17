@@ -10,10 +10,14 @@
             <x-input-label for="restaurant_id" value="Restaurant" />
             <select id="restaurant_id" name="restaurant_id" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                 <option value="">Select a restaurant&hellip;</option>
-                @foreach ($restaurants as $restaurant)
-                    <option value="{{ $restaurant->id }}" @selected(old('restaurant_id', $menu->restaurant_id ?? null) == $restaurant->id)>
-                        {{ $restaurant->name }}
-                    </option>
+                @foreach ($restaurants->groupBy('office_id') as $officeRestaurants)
+                    <optgroup label="{{ $officeRestaurants->first()->office->name }} ({{ $officeRestaurants->first()->office->user->name }})">
+                        @foreach ($officeRestaurants as $restaurant)
+                            <option value="{{ $restaurant->id }}" @selected(old('restaurant_id', $menu->restaurant_id ?? null) == $restaurant->id)>
+                                {{ $restaurant->name }}
+                            </option>
+                        @endforeach
+                    </optgroup>
                 @endforeach
             </select>
             <x-input-error :messages="$errors->get('restaurant_id')" class="mt-2" />

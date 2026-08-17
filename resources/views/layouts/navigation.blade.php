@@ -15,8 +15,8 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('office.edit')" :active="request()->routeIs('office.edit')">
-                        {{ __('Office Settings') }}
+                    <x-nav-link :href="route('offices.index')" :active="request()->routeIs('offices.*')">
+                        {{ __('My Offices') }}
                     </x-nav-link>
                     @if (Auth::user()->is_admin)
                         <x-nav-link :href="route('admin.restaurants.index')" :active="request()->routeIs('admin.restaurants.*')">
@@ -81,8 +81,8 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('office.edit')" :active="request()->routeIs('office.edit')">
-                {{ __('Office Settings') }}
+            <x-responsive-nav-link :href="route('offices.index')" :active="request()->routeIs('offices.*')">
+                {{ __('My Offices') }}
             </x-responsive-nav-link>
             @if (Auth::user()->is_admin)
                 <x-responsive-nav-link :href="route('admin.restaurants.index')" :active="request()->routeIs('admin.restaurants.*')">

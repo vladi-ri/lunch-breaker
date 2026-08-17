@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\RestaurantController as AdminRestaurantController;
-use App\Http\Controllers\OfficeSettingsController;
+use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\RsvpController;
@@ -15,9 +15,9 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [RestaurantController::class, 'index'])->name('dashboard');
 
-    Route::get('/settings/office', [OfficeSettingsController::class, 'show'])->name('office.edit');
-    Route::put('/settings/office', [OfficeSettingsController::class, 'update'])->name('office.update');
-    Route::post('/settings/office/rediscover', [OfficeSettingsController::class, 'rediscover'])->name('office.rediscover');
+    Route::resource('settings/offices', OfficeController::class)->except('show')->parameters(['offices' => 'office'])->names('offices');
+    Route::post('/settings/offices/{office}/activate', [OfficeController::class, 'activate'])->name('offices.activate');
+    Route::post('/settings/offices/{office}/rediscover', [OfficeController::class, 'rediscover'])->name('offices.rediscover');
 
     Route::post('/rsvps', [RsvpController::class, 'store'])->name('rsvps.store');
     Route::delete('/rsvps/{restaurant}', [RsvpController::class, 'destroy'])->name('rsvps.destroy');

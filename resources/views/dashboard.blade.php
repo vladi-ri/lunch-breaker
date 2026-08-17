@@ -17,7 +17,7 @@
                 <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6 text-gray-600">
                     No restaurants found within your walking radius yet. Try running restaurant discovery
                     (<code class="bg-gray-100 px-1 rounded">php artisan restaurants:discover</code>) or widen your
-                    <a href="{{ route('office.edit') }}" class="text-indigo-600 underline">office settings</a>.
+                    <a href="{{ route('offices.edit', $office) }}" class="text-indigo-600 underline">office settings</a>.
                 </div>
             @endif
 
