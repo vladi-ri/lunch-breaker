@@ -29,7 +29,7 @@ class OfficeController extends Controller
         return view(
             'offices.index', [
                 'offices'        => $request->user()->offices()->orderBy('name')->get(),
-                'activeOfficeId' => $request->user()->office_id
+                'activeOfficeID' => $request->user()->office_id
             ]
         );
     }

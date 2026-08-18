@@ -54,11 +54,20 @@ class RestaurantController extends Controller
 
         $userID      = Auth::id();
 
+        // The restaurant with the most "I'm in" RSVPs today, if any - shown
+        // under the header as the group's current pick so it's visible
+        // without scanning every card.
+        $topPick     = $restaurants
+            ->filter(fn ($restaurant) => $restaurant->rsvps->where('status', 'in')->count() > 0)
+            ->sortByDesc(fn ($restaurant) => $restaurant->rsvps->where('status', 'in')->count())
+            ->first();
+
         return view(
             'dashboard', [
                 'office'      => $office,
                 'restaurants' => $restaurants,
-                'userId'      => $userID
+                'userId'      => $userID,
+                'topPick'     => $topPick
             ]
         );
     }

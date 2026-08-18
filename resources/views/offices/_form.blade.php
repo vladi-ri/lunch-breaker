@@ -15,7 +15,7 @@
         value="{{ old('address', $office?->address) }}" required />
     <x-input-error :messages="$errors->get('address')" class="mt-2" />
     @if ($office?->geocoded_at)
-        <p class="text-xs text-gray-400 mt-1">
+        <p class="text-xs text-slate-500 mt-1">
             Last geocoded {{ $office->geocoded_at->diffForHumans() }}
             ({{ $office->latitude }}, {{ $office->longitude }})
         </p>
@@ -36,15 +36,15 @@
         <x-input-error :messages="$errors->get('max_distance_meters')" class="mt-2" />
     </div>
 </div>
-<p class="text-xs text-gray-400 -mt-4">
+<p class="text-xs text-slate-500 -mt-4">
     Set a walking-minutes limit or a distance limit (or both) — restaurants outside these will be excluded from the board.
 </p>
 
 <div>
     <x-input-label for="distance_unit" value="Display unit" />
-    <select id="distance_unit" name="distance_unit" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-        <option value="meters" @selected(old('distance_unit', $office?->distance_unit ?? 'meters') === 'meters')>Meters</option>
-        <option value="miles" @selected(old('distance_unit', $office?->distance_unit) === 'miles')>Miles</option>
+    <select id="distance_unit" name="distance_unit" class="mt-1 block w-full rounded-lg border-slate-700 bg-slate-900 text-slate-100 focus:border-sky-500 focus:ring-sky-500">
+        <option value="meters" class="bg-slate-900 text-slate-100" @selected(old('distance_unit', $office?->distance_unit ?? 'meters') === 'meters')>Meters</option>
+        <option value="miles" class="bg-slate-900 text-slate-100" @selected(old('distance_unit', $office?->distance_unit) === 'miles')>Miles</option>
     </select>
     <x-input-error :messages="$errors->get('distance_unit')" class="mt-2" />
 </div>
